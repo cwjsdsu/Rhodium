@@ -1,0 +1,6 @@
+Note: to convert isospin reduced density matrices to a charge-changing
+
+
+< Tf  Mt +/- 1 | O(T=1, =/-1) | Ti Mt > = rho(Tf, Ti, Tt=1) x (Tf Mt+/-1, Ti - Mt | 1, +/-1)
+
+where rho(Tf,Ti,Tt =1) is the isospin=1 reduced density matrix element

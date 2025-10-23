@@ -1,0 +1,191 @@
+RHODIUM PLAN OF CONSTRUCTION
+
+Another start, late October 2017
+
+
+1.  Open a .wfn file  WORKS
+2.  Read in header information from .wfn files  STARTED
+   Need to fix so both initial, final parameters  IN PROGESS
+3.  Open a .bas file   WORKS
+4.  Read in basis information from .bas files; have to decide format for storing basis information
+5.  Determine what kind of operation (n-body density, n-body spectroscopic factor)
+6.  Based upon kind of operation, start setting up "jumps" and searching
+
+
+NOTES:
+
+made good progress. Next steps:
+
+I notice that I write out the header for the .bas file. Is this a good idea? Probably, but then need to check.
+So need to rewrite routines to reflect this. Then we don't need to initially read in .wfn file, can check later.
+
+IN RHBASEFILELIB.F90 in routine READBASISFILE
+determine max nhsps and allocate
+test reading in proton information
+check about particle-hole conjugation!!
+
+DEC 2017/JAN 2018
+
+I need to read in the header for the basis file and compare with previous, so I need to modify the read_header 
+routine to simply compare
+
+12/30/2017:  Now successfully read in .bas files! 
+
+Next steps:
+
+* Open and read header for .wfn files, and compare header against prior header
+* Add menu system    ADDED 
+* Dot products and projections 
+* One-body 'jumps' and one-body densities
+* Apply one-body operators
+* One-particle creation/annihilation hops and spectroscopic factors
+* apply create/destroy operator
+* Combine hops for charge-changing densities
+* Apply charge-changing 1-body
+
+[* Two-body jumps and densities
+ * Apply two-body jumps]
+ 
+ Tentative schedule:  
+ January: dot product and projections; phases!
+ February:  1-body densities
+ March apply 1-body
+ April: one-body hops and spectroscopic factors
+ May: apply one-body create/destroy
+ 
+ 
+ I need to organize jumps, which will be organized by opbundles, which have initial and final sectors
+ and thus the quantum numbers defined. So I can generate all operators which satisfy the change in 
+ quantum numbers and which connect initial and final states. 
+ 
+ I will similarly organize hops. But then I will need to combine hops and also to combine jumps. 
+ 
+ Because I do not need super fast application, I can use derived types. I can store the jumps themselves 
+ within the derived types.
+ 
+ TO DO (Jan 2018)
+ -- revise routines to read in wave functions headers, compare against old info  DONE
+ -- set up master routines for dot products  DONE
+ -- get phases with bubble sort on occupation... this needs to be fast! PRELIMINARY
+ -- Now I have to make a decision about dot products... I should probably read in all wave functions and store them and then 
+ take all dot products: STORE FINAL WAVE FUNCTIONS, THEN READ IN INITIAL ONE BY ONE
+ 
+ >>> NEED TO REWRITE ROUTINE setup_localvectors_select in rhvectorlib.f90  TO ACCOUNT FOR INITIAL, FINAL BASES
+ 
+ -- NEXT STEP: first generation dot product. DONE, some testing okay
+ 
+ --------------------------------------
+ 
+ APRIL 2018: BEHIND SCHEDULE !
+ 
+ 
+ [in rhvectorlib.f90 in setup_localvectors_select need to get it to work DONE
+ need to set up fragments...and thus basestart/basestop DONE (though not fully functional)]
+
+ Next steps:
+ 
+ -- routine to print out projected wave functions and test DONE
+ -- store multiple vectors in history and dot product and project and test DONE
+ -- phases from reordering single-particle states   DONE
+ 
+ -- insert occupation sorter and test...?  TESTED passed initial test(s)
+    NOTES: first, must check if s.p. space is out of order DONE
+ 
+JULY 2018: Next steps, write out projected wave functions 
+July 23: appears to work
+
+Aug 16, 2018: progress in setting up jumps.
+Right now, barrier is matching dW, because if I go between different truncations, can get a change in W even in conjugate sectors.
+
+Hmm, this is fairly difficult, and I am struggling to get it right.  Still in progress.
+The real problem is, not being able to match Ws, and I sometimes overcount. The reason is
+that if I have different truncations, I don't know what the "base" W is. 
+I tried a range of Ws, but that isn't working correctly.
+
+One possibility is to simply eliminate W as a criterion for the operators. That will lead to more 
+operators, including more I have to search on, which could be a problem. 
+
+After some investigation, I see there is indeed some duplication.
+The question is,  how can I efficiently search? 
+
+I can do two things. If I know the weighting is the same, then I can deterministically match. 
+But otherwise I have to search. 
+
+8/21/18: Okay, when same W scheme, it now works, but when different weighting schemes, not yet, 
+the trouble is in correctly assigning W. Needs more work!
+
+Next steps:
+
+AUGUST 2018: 1-body densities (IN PROGRESS)
+SEPTEMBER 2018: Apply 1-body
+OCTOBER 2018: "Spectroscopic factor" densities
+NOVEMBER 2018: apply 1-particle create/destroy
+
+-------------------------------------------------
+
+Dec 2018: Next steps
+* Check count of jumps for truncated calculations
+  -- appears to be okay. Appears to correctly create jumps.
+* Start construction of computing one-body densities
+
+DEC 20, 2018: Good progress, but two issues to resolve:
+1) W-truncations in p1bdensities, in particular so that sum of proton and neutron Ws do not exceed maximum;
+not sure how to fix when not same weight scheme
+2) When comparing different bases, the diagonals may not be diagonals, and I use trace as a first check;
+see if I can fix this
+
+-------------------------------------------------
+-------------------------------------------------
+-------------------------------------------------
+-------------------------------------------------
+
+JAN 2020: Next steps:
+* Go ahead and put in Clebsch's and appropriate output file for comparison
+* Work on densities with W-truncations
+* What about when different bases?
+
+FEB 2, 2020
+FEB 3, 2020-- got basic density matrix to work and yield correct results, at least for Ne20
+-- check I have creation, annihilation operators ordered correctly and consistently, both in BIGSTICK and in RHODIUM-- DONE
+-- allow for changes in Jz  DONE
+-- Need to smooth output
+FEB 6 2020: I split rhjump1b.f90 into rhjump1b.f90 and rhjumpbase.f90; the latter will have routines in common with
+construction of other kinds of jumps, such as proton/neutron 'hops' (creation/destruction for spectroscopic factors).
+
+-------------------------------
+------------------------------
+
+SEPT 9, 2021
+  started version 0.8.3.  Plan is to work on charge-changing 1-body densities, and from that to charge-changing 
+apply 1-body. 
+
+April 22, 2022
+  RZ added MPI. New version 0.8.5.  Next steps, work on charge-changing 1-body densities. 
+Also need non-charge-changing apply 1-body.
+
+
+-------------------------------------------------
+-------------------------------------------------
+July , 2023
+Need to have code write to a .dres file, make sure the orbits are written to the correct place
+
+I did some tests on densities, need to do more, especially:
+-- check with truncations, especially different truncations PASSED
+--  different initial, final M values OKAY
+-- check with opposite parity states
+-- check truncations + opposite parity states
+
+Next, work on apply one-body (non-charge changing); my recall is that this was not working correctly, will need to test and debug
+
+July, 2024
+In recent tests, apply one-body works.  Opposite parities appear to work. Added new options for filling in missing matrix elements.
+
+In next steps, I need to pull in the 'density bag' from Bigstick to save computing time-reversed states.
+This will be version 0.9.0
+
+
+
+June 2025
+Next steps: fix for p-h conjugation
+            fix for PNW format for different valence spaces
+
